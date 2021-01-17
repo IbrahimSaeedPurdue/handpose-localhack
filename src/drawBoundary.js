@@ -1,4 +1,3 @@
-import { convertCompilerOptionsFromJson } from 'typescript';
 
 function lerp (v, w, t) {
   return v + (w - v) * t;
@@ -79,13 +78,13 @@ export const drawHandMP = (image, classification, marks, ctx) => {
   // index 5 - 8
   // middle 9 - 12
   // ring 13 - 16
-  // pinky 17 - 21
+  // pinky 17 - 20
   const fingers = [
     { range: [1, 4], color: 'red' },
     { range: [5, 8], color: 'blue' },
     { range: [9, 12], color: 'yellow' },
     { range: [13, 16], color: 'orange' },
-    { range: [17, marks.length - 1], color: 'lime' }
+    { range: [17, 20], color: 'lime' }
   ];
 
   fingers.forEach(finger => {
