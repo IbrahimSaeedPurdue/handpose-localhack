@@ -109,6 +109,7 @@ export const displayHand = (image, classification, marks, ctx, predictionRef) =>
 
       const tensor = tf.tensor4d(pix, [1, 64, 64, 3], 'float32');
       // console.log(tensor.dataSync());
+      if (window.recognizer === null) return [finalNumPrediction, null];
       const recognized = window.recognizer.predict(tensor).bufferSync().values;
 
       // console.log(recognized);
@@ -152,7 +153,7 @@ export const displayHand = (image, classification, marks, ctx, predictionRef) =>
       x2 - x1, y2 - y1
     );
 
-    return finalNumPrediction;
+    return [finalNumPrediction, labels[best_guess]];
   }
 };
 
@@ -221,7 +222,7 @@ const displayHandLandmarks = (image, marks, ctx) => {
 
 // draw red boundary around the entire screen when no hand is discovered
 export const displayEmpty = (ctx, predictionRef) => {
-  ctx.strokeStyle = 'red';
+  ctx.strokeStyle = 'tomato';
   ctx.lineWidth = 5;
   ctx.strokeRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 

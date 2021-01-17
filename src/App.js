@@ -1,6 +1,6 @@
 // import logo from './logo.svg';
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 
 import * as tf from '@tensorflow/tfjs';
 import Webcam from 'react-webcam';
@@ -14,11 +14,19 @@ import { Hands } from '@mediapipe/hands/hands';
 import { displayHand, displayEmpty } from './displayUtils';
 
 function App () {
+  const numContainerRef = useRef(null);
+  const letterContainerRef = useRef(null);
+  const numMode = useRef(true);
+
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
-  const predictionRef = useRef(null);
 
-  const allPredictions = useRef([]);
+  const numPredictionText = useRef(null);
+  const letterPredictionText = useRef(null);
+
+  const numPredictions = useRef([]);
+  const letterPredictions = useRef([]);
+
   const zeroDiv = useRef(null);
   const oneDiv = useRef(null);
   const twoDiv = useRef(null);
@@ -26,13 +34,17 @@ function App () {
   const fourDiv = useRef(null);
   const fiveDiv = useRef(null);
 
+  const mDiv = useRef(null);
+  const lDiv = useRef(null);
+  const hDiv = useRef(null);
+
   window.webcamEl = null;
   window.recognizer = null;
 
-  const setPredictionText = (currPrediction) => {
-    const predictionsArr = allPredictions.current;
+  const updateNumUI = (currPrediction) => {
+    const predictionsArr = numPredictions.current;
 
-    const updatedCols = (countArr) => {
+    const updateNumCols = (countArr) => {
       zeroDiv.current.style.height = (countArr[0] / 15 * 300) + 'px';
       oneDiv.current.style.height = (countArr[1] / 15 * 300) + 'px';
       twoDiv.current.style.height = (countArr[2] / 15 * 300) + 'px';
@@ -42,10 +54,9 @@ function App () {
     };
 
     if (predictionsArr.length < 16) return predictionsArr.push(currPrediction);
-    else {
-      predictionsArr.shift();
-      predictionsArr.push(currPrediction);
-    }
+
+    predictionsArr.shift();
+    predictionsArr.push(currPrediction);
 
     let updateText = true;
     const numCounts = [0, 0, 0, 0, 0, 0];
@@ -55,8 +66,37 @@ function App () {
       if (predictionsArr[i] !== currPrediction) updateText = false;
     }
     // console.log(numCounts);
-    updatedCols(numCounts);
-    if (updateText) predictionRef.current.innerText = currPrediction + ' is the best numeric guess from 1 to 5';
+    updateNumCols(numCounts);
+    if (updateText) numPredictionText.current.innerText = currPrediction + ' is the best numeric guess from 1 to 5';
+  };
+
+  const updateLetterUI = (currPrediction) => {
+    const predictionsArr = letterPredictions.current;
+    const updateLetterCols = (countArr) => {
+      mDiv.current.style.height = (countArr[0] / 15 * 300) + 'px';
+      lDiv.current.style.height = (countArr[1] / 15 * 300) + 'px';
+      hDiv.current.style.height = (countArr[2] / 15 * 300) + 'px';
+    };
+    if (predictionsArr.length < 16) return predictionsArr.push(currPrediction);
+    else {
+      predictionsArr.shift();
+      predictionsArr.push(currPrediction);
+    }
+
+    let updateText = true;
+    // [M, L, H]
+    const numCounts = [0, 0, 0];
+    for (let i = 0; i < 10; i++) {
+      if (predictionsArr[i] === 'M') numCounts[0]++;
+      else if (predictionsArr[i] === 'L') numCounts[1]++;
+      else if (predictionsArr[i] === 'H') numCounts[2]++;
+      else return;
+
+      if (predictionsArr[i] !== currPrediction) updateText = false;
+    }
+    // console.log(numCounts);
+    updateLetterCols(numCounts);
+    if (updateText) numPredictionText.current.innerText = currPrediction + ' is the best numeric guess from 1 to 5';
   };
 
   // called when image from webcam is successfully sent to the mediapipe hands model
@@ -76,19 +116,22 @@ function App () {
     if (results.multiHandLandmarks && results.multiHandedness) {
       // console.log(results);
       for (let i = 0; i < results.multiHandLandmarks.length; i++) {
-        const numPrediction = displayHand(
+        const [numPrediction, letterPrediction] = displayHand(
           results.image,
           results.multiHandedness[i],
           results.multiHandLandmarks[i],
           ctx,
-          predictionRef
+          numPredictionText
         );
 
         // changes prediction text... after getting the same prediction 10 times
-        if (numPrediction) setPredictionText(numPrediction);
+        // console.log(letterPrediction);
+        updateNumUI(numPrediction);
+        updateLetterUI(letterPrediction);
       }
     } else { // empty results
-      displayEmpty(ctx, predictionRef);
+      displayEmpty(ctx, numPredictionText);
+      displayEmpty(ctx, letterPredictionText);
     }
     ctx.restore();
   };
@@ -185,65 +228,57 @@ function App () {
   };
 
   useEffect(() => { setupWidgets(); }, []);
-  // setupWidgets();
-
-  const colStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'end',
-    textAlign: 'center',
-    width: '40px',
-    height: '1px',
-    backgroundColor: 'red',
-    margin: '10px'
-  };
 
   return (
     <div className='App'>
-      <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '520px' }}>
-        <h4 ref={predictionRef}>
-          No Prediction
-        </h4>
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <div ref={zeroDiv} style={colStyle}><p>0</p></div>
-          <div ref={oneDiv} style={colStyle}><p>1</p></div>
-          <div ref={twoDiv} style={colStyle}><p>2</p></div>
-          <div ref={threeDiv} style={colStyle}><p>3</p></div>
-          <div ref={fourDiv} style={colStyle}><p>4</p></div>
-          <div ref={fiveDiv} style={colStyle}><p>5</p></div>
+      <header>
+        <Webcam ref={webcamRef} className='webcam' />
+        <canvas ref={canvasRef} className='canvas' />
+      </header>
+      <div className='blog-slider'>
+        <p style={{ textAlign: 'center' }}>Spread you hand towards the camera like a 5 to calibrate</p>
+        <div ref={numContainerRef} className='numContainer'>
+          <h4 ref={numPredictionText} style={{ textAlign: 'center' }}>No Prediction</h4>
+          <div className='colContainer'>
+            <div ref={zeroDiv} className='col'><p>0</p></div>
+            <div ref={oneDiv} className='col'><p>1</p></div>
+            <div ref={twoDiv} className='col'><p>2</p></div>
+            <div ref={threeDiv} className='col'><p>3</p></div>
+            <div ref={fourDiv} className='col'><p>4</p></div>
+            <div ref={fiveDiv} className='col'><p>5</p></div>
+          </div>
+        </div>
+
+        <div ref={letterContainerRef} className='letterContainer hidden'>
+          <h4 ref={letterPredictionText} style={{ textAlign: 'center' }}>No Prediction</h4>
+          <div className='colContainer'>
+            <div ref={mDiv} className='col'>M</div>
+            <div ref={lDiv} className='col'>L</div>
+            <div ref={hDiv} className='col'>H</div>
+          </div>
+        </div>
+        <div className='toggleContainer'>
+          <p>Num Recognition</p>
+          <div>
+            <input
+              type='checkbox'
+              id='switch'
+              onChange={() => {
+                if (numMode.current) {
+                  numContainerRef.current.classList.add('hidden');
+                  letterContainerRef.current.classList.remove('hidden');
+                } else {
+                  letterContainerRef.current.classList.add('hidden');
+                  numContainerRef.current.classList.remove('hidden');
+                }
+                numMode.current = !numMode.current;
+              }}
+            /><label for='switch'>Toggle</label>
+            <strong>Toggle Mode</strong>
+          </div>
+          <p>letter Recognition</p>
         </div>
       </div>
-      <header className='App-header'>
-        <Webcam
-          ref={webcamRef}
-          style={{
-            position: 'absolute',
-            marginLeft: 'auto',
-            marginRight: 'auto',
-            left: 0,
-            right: 0,
-            textAlign: 'center',
-            zindex: 9,
-            width: 640,
-            height: 480
-          }}
-        />
-
-        <canvas
-          ref={canvasRef}
-          style={{
-            position: 'absolute',
-            marginLeft: 'auto',
-            marginRight: 'auto',
-            left: 0,
-            right: 0,
-            textAlign: 'center',
-            zindex: 9,
-            width: 640,
-            height: 480
-          }}
-        />
-      </header>
     </div>
   );
 }
