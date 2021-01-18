@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/handpose-localhack/static/css/main.cb0524fc.chunk.css",
-    "main.js": "/handpose-localhack/static/js/main.8c9c75e2.chunk.js",
-    "main.js.map": "/handpose-localhack/static/js/main.8c9c75e2.chunk.js.map",
+    "main.js": "/handpose-localhack/static/js/main.2ee89355.chunk.js",
+    "main.js.map": "/handpose-localhack/static/js/main.2ee89355.chunk.js.map",
     "runtime-main.js": "/handpose-localhack/static/js/runtime-main.50ab63fe.js",
     "runtime-main.js.map": "/handpose-localhack/static/js/runtime-main.50ab63fe.js.map",
     "static/js/2.7b282754.chunk.js": "/handpose-localhack/static/js/2.7b282754.chunk.js",
@@ -15,6 +15,6 @@
     "static/js/runtime-main.50ab63fe.js",
     "static/js/2.7b282754.chunk.js",
     "static/css/main.cb0524fc.chunk.css",
-    "static/js/main.8c9c75e2.chunk.js"
+    "static/js/main.2ee89355.chunk.js"
   ]
 }
